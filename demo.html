@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>MNIST Tahmin Uygulaması</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    canvas {
+      border: 2px solid #ccc;
+      background: #fff;
+      cursor: crosshair;
+      border-radius: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 8px;
+      background: #007BFF;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #prediction {
+      font-size: 24px;
+      margin-top: 15px;
+      color: #333;
+    }
+    .bar-container {
+      width: 320px;
+      background: #e0e0e0;
+      border-radius: 8px;
+      margin: 5px auto;
+      overflow: hidden;
+    }
+    .bar {
+      height: 24px;
+      background: linear-gradient(90deg, #28a745, #82e182);
+      text-align: right;
+      padding-right: 10px;
+      color: white;
+      font-size: 14px;
+      line-height: 24px;
+      transition: width 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <h1>MNIST Rakam Tanıma</h1>
+  <canvas id="canvas" width="280" height="280"></canvas><br>
+  <div>
+    <button onclick="predict()">Tahmin Et</button>
+    <button onclick="clearCanvas()">Temizle</button>
+  </div>
+  <div id="prediction">Tahmin: ?</div>
+  <div id="bars"></div>
+
+  <script>
+    let model;
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false;
+
+    canvas.addEventListener('mousedown', () => { isDrawing = true; });
+    canvas.addEventListener('mouseup', () => { isDrawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', draw);
+
+    function draw(e) {
+      if (!isDrawing) return;
+      ctx.lineWidth = 20;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'black';
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(e.offsetX, e.offsetY);
+    }
+
+    function clearCanvas() {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      document.getElementById("prediction").innerText = "Tahmin: ?";
+      document.getElementById("bars").innerHTML = "";
+    }
+
+    async function predict() {
+      const imageData = ctx.getImageData(0, 0, 280, 280);
+      const tfImg = tf.browser.fromPixels(imageData, 1)
+          .resizeNearestNeighbor([28, 28])
+          .toFloat()
+          .div(tf.scalar(255.0))
+          .reshape([1, 28, 28, 1]);
+
+      const inverted = tf.scalar(1.0).sub(tfImg);
+      const prediction = model.predict(inverted);
+      const probabilities = await prediction.data();
+      const predictedClass = prediction.argMax(-1);
+      const index = (await predictedClass.data())[0];
+
+      document.getElementById("prediction").innerText = "Tahmin: " + index;
+
+      const bars = document.getElementById("bars");
+      bars.innerHTML = "";
+      probabilities.forEach((p, i) => {
+        const percentage = (p * 100).toFixed(2);
+        const container = document.createElement("div");
+        container.className = "bar-container";
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.width = percentage + "%";
+        bar.innerText = `${i}: ${percentage}%`;
+        container.appendChild(bar);
+        bars.appendChild(container);
+      });
+    }
+
+    async function loadModel() {
+      model = await tf.loadLayersModel('tfjs_model/model.json');
+    }
+
+    loadModel();
+    clearCanvas();
+  </script>
+</body>
+</html>
