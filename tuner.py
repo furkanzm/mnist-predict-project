@@ -13,7 +13,7 @@ def build_model(hp):
         model.add(keras.layers.Dense(
             units=hp.Int(f'units_{i}', min_value=64, max_value=512, step=64),
             activation=hp.Choice('activation', ['relu', 'tanh']),
-            kernel_regularizer=keras.regularizers.l2(hp.Float('l2_reg', 1e-4, 1e-2, sampling='log'))
+            kernel_regularizer=None
         ))
         model.add(keras.layers.Dropout(hp.Float('dropout', 0.2, 0.5, step=0.1)))
 
@@ -46,7 +46,7 @@ def run_tuner():
 
     tuner.results_summary()
     best_model = tuner.get_best_models(num_models=1)[0]
-    best_model.save("saved_model/mnist_ann_tuned.h5")
+    best_model.save("saved_model/mnist_tuned.h5")
 
 if __name__ == "__main__":
     run_tuner()

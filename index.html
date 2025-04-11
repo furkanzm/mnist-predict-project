@@ -115,18 +115,22 @@
 
       if (!model || model._modelUrl !== modelUrl) {
         model = await tf.loadLayersModel(modelUrl);
-        model._modelUrl = modelUrl; // modeli yeniden yüklememek için cache
+        model._modelUrl = modelUrl;
+        console.log("Yüklenen model:", modelUrl);
       }
 
       const imageData = ctx.getImageData(0, 0, 280, 280);
-      const tfImg = tf.browser.fromPixels(imageData, 1)
+      let tfImg = tf.browser.fromPixels(imageData, 1)
           .resizeNearestNeighbor([28, 28])
           .toFloat()
-          .div(tf.scalar(255.0))
-          .reshape([1, 28, 28, 1]);
+          .div(tf.scalar(255.0));
 
       const inverted = tf.scalar(1.0).sub(tfImg);
-      const prediction = model.predict(inverted);
+
+      const inputShape = model.inputs[0].shape.map(x => x === null ? 1 : x);
+      const reshaped = inverted.reshape(inputShape);
+
+      const prediction = model.predict(reshaped);
       const probabilities = await prediction.data();
       const predictedClass = prediction.argMax(-1);
       const index = (await predictedClass.data())[0];

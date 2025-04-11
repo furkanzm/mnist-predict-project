@@ -124,6 +124,20 @@ python evaluate.py
 
 ---
 
+### 🔁 Web Arayüzü İçin Dinamik `reshape` İşlemi
+
+Web arayüzünde, modelin giriş boyutuna göre otomatik olarak tensör yeniden şekillendirme yapılır:
+
+```js
+const inputShape = model.inputs[0].shape.map(x => x === null ? 1 : x);
+const reshaped = inputTensor.reshape(inputShape);
+```
+
+> Bu sayede hem CNN (4D `[1, 28, 28, 1]`) hem de ANN (3D `[1, 28, 28]`) modelleri desteklenir.  
+> `null` değerler otomatik olarak `1` ile değiştirilir.
+
+---
+
 ## 📜 Lisans
 
 MIT © Furkan Üzüm
