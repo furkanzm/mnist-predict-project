@@ -138,6 +138,17 @@ const reshaped = inputTensor.reshape(inputShape);
 
 ---
 
+
+---
+### 🎯 Model Training Progress
+
+![Model Training Progress](Figure_1.png)
+
+### 🎯Confusion Matrix
+
+![Confusion Matrix](Figure_2.png)
+---
+
 ## 📜 Lisans
 
 MIT © Furkan Üzüm

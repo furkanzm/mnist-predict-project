@@ -63,6 +63,10 @@
     .model-select {
       margin: 10px;
     }
+    #loading {
+      margin-top: 10px;
+      color: #777;
+    }
   </style>
 </head>
 <body>
@@ -78,6 +82,7 @@
     <button onclick="predict()">Tahmin Et</button>
     <button onclick="clearCanvas()">Temizle</button>
   </div>
+  <div id="loading" style="display: none;">⏳ Model yükleniyor...</div>
   <div id="prediction">Tahmin: ?</div>
   <div id="bars"></div>
 
@@ -114,8 +119,14 @@
       const modelUrl = selectedModel === 'tuned' ? 'tfjs_model_tuned/model.json' : 'tfjs_model/model.json';
 
       if (!model || model._modelUrl !== modelUrl) {
+        document.getElementById("loading").style.display = "block";
+        document.querySelectorAll("button").forEach(b => b.disabled = true);
+
         model = await tf.loadLayersModel(modelUrl);
         model._modelUrl = modelUrl;
+
+        document.getElementById("loading").style.display = "none";
+        document.querySelectorAll("button").forEach(b => b.disabled = false);
         console.log("Yüklenen model:", modelUrl);
       }
 
@@ -126,7 +137,6 @@
           .div(tf.scalar(255.0));
 
       const inverted = tf.scalar(1.0).sub(tfImg);
-
       const inputShape = model.inputs[0].shape.map(x => x === null ? 1 : x);
       const reshaped = inverted.reshape(inputShape);
 
