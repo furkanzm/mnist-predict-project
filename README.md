@@ -1,6 +1,7 @@
 # 🧠 MNIST Yapay Zeka Projesi (CNN + TF.js + Flask)
 
 ![MNIST Demo](Figure_1.png)
+![MNIST Demo](Figure_2.png)
 
 Canlı çizim ile el yazısı rakam tanıma uygulaması.
 
