@@ -1,132 +1,110 @@
-# MNIST Yapay Zeka Projesi (CNN + TF.js + Flask API)
+# 🧠 MNIST Yapay Zeka Projesi (CNN + TF.js + Flask)
 
-Bu proje, el yazısı rakamları tanımak için TensorFlow ile eğitilmiş bir CNN modelini içerir.  
-Model farklı platformlara uyarlanabilir:
-- 🧠 Eğitim ve değerlendirme (TensorFlow)
-- 📊 Web arayüzü (TensorFlow.js)
-- 🌐 REST API (Flask)
+![MNIST Demo](Figure_1.png)
+
+Canlı çizim ile el yazısı rakam tanıma uygulaması.
+
+> 🎨 Web demo, 🧠 CNN eğitimi, 🌐 Flask REST API ve 🔁 TF.js dönüşümü içerir.
 
 ---
 
-## 🔧 GEREKSİNİMLER
+## 🔗 Canlı Demo (GitHub Pages)
+
+🎯 [https://furkanzm.github.io/mnist-predict-project/](https://furkanzm.github.io/mnist-predict-project/)
+
+> Bu bağlantıdan `demo.html`'ü tarayıcınızda çalıştırabilirsiniz (TF.js kullanır).
+
+---
+
+## 🔧 Kurulum
 
 ```bash
+git clone https://github.com/furkanzm/mnist-predict-project.git
+cd mnist-predict-project
 pip install -r requirements.txt
 ```
 
-> Gerekli dosya: `requirements.txt`
-
 ---
 
-## 🧠 EĞİTİM VE DEĞERLENDİRME
+## 🚀 Modeli Eğit
 
-### Modeli eğitmek için:
 ```bash
 python train.py
 ```
 
-### Eğitilen modeli test etmek için:
+Model başarıyla eğitildikten sonra:
+- `saved_model/` → `.h5` modeli içerir
+- `logs/` → TensorBoard logları içerir
+
+---
+
+## 📊 TensorBoard İzleme
+
+```bash
+tensorboard --logdir=logs/fit
+```
+
+---
+
+## 🧪 Değerlendirme
+
 ```bash
 python evaluate.py
 ```
 
 ---
 
-## 📊 TENSORBOARD TAKİBİ
+## 🌐 Flask API
 
-```bash
-tensorboard --logdir=logs/fit
-```
-tensorboard: TensorFlow’un yerleşik eğitim takibi aracı.
-
---logdir=logs/fit: train.py sırasında kaydedilen log dosyalarının yolu.
-
-🎯 Amaçları:
-✅ 1. Eğitim ve Doğrulama Kaybını Gösterir
-loss ve val_loss eğrilerini görsel olarak karşılaştırırsın.
-
-Aşırı öğrenme (overfitting) olup olmadığını anlarsın.
-
-✅ 2. Accuracy Takibi
-Eğitim doğruluğu (accuracy) ve doğrulama doğruluğu (val_accuracy) grafik olarak gösterilir.
-
-✅ 3. Epoch Başına Performans Takibi
-Kaçıncı epoch'ta iyileşme durmuş, ne zaman durmalı?
-EarlyStopping için analiz sağlar.
-
-📈 Açmak için:
-Tarayıcında şu adrese git: http://localhost:6006
-Grafikler, istatistikler, katmanlar ve daha fazlası seni karşılar!
-
-
----
-
-## 🌐 FLASK API
-
-### Başlatmak için:
 ```bash
 python app.py
 ```
 
-### Test etmek için:
+Tarayıcıdan ya da `curl` ile test edebilirsin:
 ```bash
 curl -X POST -F "file=@el_yazisi.png" http://localhost:5000/predict
 ```
 
 ---
 
-## 🕸️ WEB DEMO (TF.js)
+## 🖥️ Web Demo (TF.js)
 
-### Dönüştürmek için:
+### TF.js dönüşümü:
 ```bash
 bash tfjs_convert.sh
 ```
 
-### Yerel sunucuda çalıştırmak için:
+### Tarayıcıda demo çalıştır:
 ```bash
 python3 -m http.server
 ```
-
-Sonra tarayıcında aç:
-```
-http://localhost:8000/demo.html
-```
+Git: [http://localhost:8000/demo.html](http://localhost:8000/demo.html)
 
 ---
 
-## 📁 DOSYA YAPISI
+## 📁 Proje Yapısı
 
 ```
-mnist_ann_extended/
-├── app.py                 # Flask API
-├── train.py               # Eğitim süreci
-├── evaluate.py            # Test süreci
-├── model.py               # CNN mimarisi
-├── data_loader.py         # Veri yükleme ve görselleştirme
-├── tuner.py               # Hiperparametre arama
-├── data_augmentation.py   # Görsel artırma örnekleri
-├── tfjs_convert.sh        # TF.js model dönüşüm komutu
-├── demo.html              # Web arayüzü (canvas + JS)
-├── saved_model/           # Eğitilmiş model (.h5 dosyası)
-└── logs/                  # TensorBoard logları
+mnist_ann_prediction_app/
+├── app.py
+├── train.py
+├── evaluate.py
+├── model.py
+├── data_loader.py
+├── tuner.py
+├── data_augmentation.py
+├── tfjs_convert.sh
+├── demo.html
+├── requirements.txt
+├── README.md
+├── Figure_1.png
+├── saved_model/          <-- model çıktısı
+├── tfjs_model/           <-- TF.js modeli
+└── logs/                 <-- TensorBoard logları
 ```
-
----
-
-## ✍️ Notlar
-
-- `demo.html`, TF.js ile eğitilen modeli `tfjs_model/` klasöründen alır.
-- `app.py` Flask API olarak çalışır ve POST üzerinden tahmin döndürür.
-- `train.py` modeli eğitirken TensorBoard, EarlyStopping ve veri artırmayı içerir.
-
----
-
-## 🧪 Önerilen Ortam
-
-Python 3.8+ ve TensorFlow 2.10+
 
 ---
 
 ## 📜 Lisans
 
-MIT Lisansı
+MIT © Furkan Üzüm
