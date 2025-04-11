@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>MNIST Tahmin Uygulaması</title>
+  <title>MNIST Tahmin (Model Seçilebilir)</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <style>
     body {
@@ -60,10 +60,19 @@
       line-height: 24px;
       transition: width 0.4s ease;
     }
+    .model-select {
+      margin: 10px;
+    }
   </style>
 </head>
 <body>
   <h1>MNIST Rakam Tanıma</h1>
+
+  <div class="model-select">
+    <label><input type="radio" name="model" value="default" checked> Default Model</label>
+    <label><input type="radio" name="model" value="tuned"> Tuned Model</label>
+  </div>
+
   <canvas id="canvas" width="280" height="280"></canvas><br>
   <div>
     <button onclick="predict()">Tahmin Et</button>
@@ -101,6 +110,14 @@
     }
 
     async function predict() {
+      const selectedModel = document.querySelector('input[name="model"]:checked').value;
+      const modelUrl = selectedModel === 'tuned' ? 'tfjs_model_tuned/model.json' : 'tfjs_model/model.json';
+
+      if (!model || model._modelUrl !== modelUrl) {
+        model = await tf.loadLayersModel(modelUrl);
+        model._modelUrl = modelUrl; // modeli yeniden yüklememek için cache
+      }
+
       const imageData = ctx.getImageData(0, 0, 280, 280);
       const tfImg = tf.browser.fromPixels(imageData, 1)
           .resizeNearestNeighbor([28, 28])
@@ -114,7 +131,7 @@
       const predictedClass = prediction.argMax(-1);
       const index = (await predictedClass.data())[0];
 
-      document.getElementById("prediction").innerText = "Tahmin: " + index;
+      document.getElementById("prediction").innerText = "Tahmin: " + index + " (" + selectedModel + ")";
 
       const bars = document.getElementById("bars");
       bars.innerHTML = "";
@@ -131,11 +148,6 @@
       });
     }
 
-    async function loadModel() {
-      model = await tf.loadLayersModel('tfjs_model/model.json');
-    }
-
-    loadModel();
     clearCanvas();
   </script>
 </body>

@@ -1,19 +1,26 @@
 # 🧠 MNIST Yapay Zeka Projesi (CNN + TF.js + Flask)
 
-![MNIST Demo](Figure_1.png)
-![MNIST Demo](Figure_2.png)
-
-Canlı çizim ile el yazısı rakam tanıma uygulaması.
-
-> 🎨 Web demo, 🧠 CNN eğitimi, 🌐 Flask REST API ve 🔁 TF.js dönüşümü içerir.
+🎨 Canlı çizim ile el yazısı rakam tanıma uygulaması  
+🧠 Kullanıcı seçimine göre 2 farklı model ile tahmin yapılabilir!
 
 ---
 
 ## 🔗 Canlı Demo (GitHub Pages)
 
-🎯 [https://furkanzm.github.io/mnist-predict-project/](https://furkanzm.github.io/mnist-predict-project/)
+👉 [https://furkanzm.github.io/mnist-predict-project/](https://furkanzm.github.io/mnist-predict-project/)
 
-> Bu bağlantıdan `demo.html`'ü tarayıcınızda çalıştırabilirsiniz (TF.js kullanır).
+> Web arayüzünde `Default` ve `Tuned` modeli seçip test edebilirsiniz!
+
+---
+
+## 🧰 Özellikler
+
+- ✅ CNN tabanlı el yazısı tanıma
+- ✅ Tuned model (hyperparameter optimization)
+- ✅ Flask API (REST)
+- ✅ TensorFlow.js dönüşümü
+- ✅ Bar grafikli tahmin yüzdeleri
+- ✅ Kullanıcı arayüzü üzerinden model seçme imkanı
 
 ---
 
@@ -27,22 +34,75 @@ pip install -r requirements.txt
 
 ---
 
-## 🚀 Modeli Eğit
+## 🚀 Model Eğitimi
+
+### 1. Varsayılan model (ANN):
 
 ```bash
 python train.py
 ```
 
-Model başarıyla eğitildikten sonra:
-- `saved_model/` → `.h5` modeli içerir
-- `logs/` → TensorBoard logları içerir
+### 2. Optimize model (Tuned):
+
+```bash
+python tuner.py
+```
+
+Kaydeder:
+- `saved_model/mnist_ann.h5`
+- `saved_model/mnist_tuned.h5`
 
 ---
 
-## 📊 TensorBoard İzleme
+## 🔄 TF.js Dönüşüm
+
+```bash
+# Default model
+bash tfjs_convert.sh
+
+# Tuned model
+tensorflowjs_converter --input_format=keras saved_model/mnist_tuned.h5 tfjs_model_tuned/
+```
+
+---
+
+## 🌐 Flask API Kullanımı
+
+```bash
+python app.py
+```
+
+### Tahmin isteği (model seçimi dahil):
+
+```bash
+curl -X POST -F "file=@resim.png" http://localhost:5000/predict?model=default
+curl -X POST -F "file=@resim.png" http://localhost:5000/predict?model=tuned
+```
+
+---
+
+## 📊 TensorBoard Görselleştirme
 
 ```bash
 tensorboard --logdir=logs/fit
+```
+
+---
+
+## 📁 Proje Yapısı
+
+```
+mnist_ann_prediction_app/
+├── app.py                 # Flask API
+├── train.py               # Default model eğitimi
+├── tuner.py               # Hyperparameter tuning
+├── model.py               # Model oluşturucu
+├── demo.html              # Web arayüzü (model seçimi dahil)
+├── tfjs_model/            # Default modelin TF.js sürümü
+├── tfjs_model_tuned/      # Tuned modelin TF.js sürümü
+├── saved_model/           # HDF5 modeller
+├── requirements.txt
+├── README.md
 ```
 
 ---
@@ -55,54 +115,12 @@ python evaluate.py
 
 ---
 
-## 🌐 Flask API
+## 🏁 Demo Özeti
 
-```bash
-python app.py
-```
-
-Tarayıcıdan ya da `curl` ile test edebilirsin:
-```bash
-curl -X POST -F "file=@el_yazisi.png" http://localhost:5000/predict
-```
-
----
-
-## 🖥️ Web Demo (TF.js)
-
-### TF.js dönüşümü:
-```bash
-bash tfjs_convert.sh
-```
-
-### Tarayıcıda demo çalıştır:
-```bash
-python3 -m http.server
-```
-Git: [http://localhost:8000/demo.html](http://localhost:8000/demo.html)
-
----
-
-## 📁 Proje Yapısı
-
-```
-mnist_ann_prediction_app/
-├── app.py
-├── train.py
-├── evaluate.py
-├── model.py
-├── data_loader.py
-├── tuner.py
-├── data_augmentation.py
-├── tfjs_convert.sh
-├── demo.html
-├── requirements.txt
-├── README.md
-├── Figure_1.png
-├── saved_model/          <-- model çıktısı
-├── tfjs_model/           <-- TF.js modeli
-└── logs/                 <-- TensorBoard logları
-```
+- 🎨 Canvas ile çizim yap
+- 🔘 Model seç (Default veya Tuned)
+- 🧠 Tahmin butonuna bas
+- 📊 Tahmin yüzdelerini incele
 
 ---
 

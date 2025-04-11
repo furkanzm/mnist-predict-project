@@ -4,3 +4,4 @@ __pycache__/
 *.tflite
 logs/
 saved_model/
+tuner_results/
