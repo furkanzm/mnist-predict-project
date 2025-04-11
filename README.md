@@ -149,6 +149,31 @@ const reshaped = inputTensor.reshape(inputShape);
 ![Confusion Matrix](Figure_2.png)
 ---
 
+## ✨ Tuning Lab Entegrasyonu
+
+### 🎛️ Tuning Lab Nedir?
+Kullanıcının tarayıcı üzerinden hiperparametreleri belirleyerek kendi modelini eğitmesine ve sonuçları karşılaştırmasına olanak tanıyan bir deney platformudur.
+
+### 💡 Özellikler
+- Katman sayısı, nöron sayısı, aktivasyon, dropout, learning rate vs. gibi parametreleri kullanıcı belirler
+- `/create_model` endpoint'i ile model eğitilir
+- `/compare_models` ile doğrulukları grafiksel olarak karşılaştırılır
+- `/evaluate_model/<model_name>` ile kayıtlı bir model test edilir
+- `/list_models` ile kayıtlı tüm modeller listelenir
+
+### 📄 Dosyalar
+- `tuning_lab.html`: Etkileşimli arayüz
+- `train_custom.py`: Parametreye bağlı eğitim scripti
+- `model_history.json`: Eğitim geçmişi
+- `saved_models/user/`: Kullanıcı modelleri
+
+### 🎯 Kullanım
+1. `app.py` çalıştırılır
+2. `tuning_lab.html` tarayıcıda açılır
+3. Kullanıcı parametreleri girer ve modeli eğitir
+4. Eğitilen modeller grafiksel olarak kıyaslanabilir
+
+---
 ## 📜 Lisans
 
 MIT © Furkan Üzüm

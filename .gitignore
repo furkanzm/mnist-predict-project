@@ -5,3 +5,4 @@ __pycache__/
 logs/
 saved_model/
 tuner_results/
+model_history.json

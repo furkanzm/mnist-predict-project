@@ -1,60 +1,83 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+from train_custom import train_custom_model
 from tensorflow.keras.models import load_model
-import numpy as np
-from PIL import Image
-import io
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
 import os
+import json
 
 app = Flask(__name__)
+MODEL_DIR = "saved_models/user"
+HISTORY_FILE = "model_history.json"
 
-model_paths = {
-    "default": "saved_model/mnist_ann.h5",
-    "tuned": "saved_model/mnist_tuned.h5"
-}
+# Dosyalar eksikse oluştur
+os.makedirs(MODEL_DIR, exist_ok=True)
+if not os.path.exists(HISTORY_FILE):
+    with open(HISTORY_FILE, "w") as f:
+        json.dump([], f)
 
-loaded_models = {}
+# MNIST test verisi
+(_, _), (x_test, y_test) = mnist.load_data()
+x_test = x_test.astype("float32") / 255.0
+y_test = to_categorical(y_test, 10)
 
-def get_model(name):
-    if name not in loaded_models:
-        if name in model_paths and os.path.exists(model_paths[name]):
-            loaded_models[name] = load_model(model_paths[name])
-        else:
-            raise ValueError(f"Model '{name}' bulunamadı.")
-    return loaded_models[name]
-
+# Ana sayfa (demo.html)
 @app.route("/")
-def home():
-    return "MNIST Prediction API is running. Use /predict?model=default or /predict?model=tuned"
+def index():
+    return send_from_directory(".", "demo.html")
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    model_key = request.args.get("model", "default")
+@app.route("/tuning_lab.html")
+def tuning():
+    return send_from_directory(".", "tuning_lab.html")
+
+# TF.js model dosyaları
+@app.route("/tfjs_model/<path:filename>")
+def serve_tfjs_default(filename):
+    return send_from_directory("tfjs_model", filename)
+
+@app.route("/tfjs_model_tuned/<path:filename>")
+def serve_tfjs_tuned(filename):
+    return send_from_directory("tfjs_model_tuned", filename)
+
+# Custom modeli oluştur
+@app.route("/create_model", methods=["POST"])
+def create_model():
+    params = request.json
+    result = train_custom_model(params)
+
+    with open(HISTORY_FILE) as f:
+        history_data = json.load(f)
+    history_data.append(result)
+    with open(HISTORY_FILE, "w") as f:
+        json.dump(history_data, f, indent=2)
+
+    return jsonify({
+        "model_name": result["model_name"],
+        "val_accuracy": result["val_accuracy"]
+    })
+
+# Kayıtlı modelleri listele
+@app.route("/list_models")
+def list_models():
+    with open(HISTORY_FILE) as f:
+        history_data = json.load(f)
+    return jsonify([{"model_name": m["model_name"], "created": m["created"]} for m in history_data])
+
+# Modelin başarımını göster
+@app.route("/evaluate_model/<model_name>")
+def evaluate_model(model_name):
     try:
-        model = get_model(model_key)
-    except ValueError as e:
+        model = load_model(os.path.join(MODEL_DIR, f"{model_name}.h5"))
+        loss, acc = model.evaluate(x_test, y_test, verbose=0)
+        return jsonify({"model_name": model_name, "val_accuracy": acc, "loss": loss})
+    except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-    if "file" not in request.files:
-        return jsonify({"error": "No file part"}), 400
-
-    file = request.files["file"]
-
-    try:
-        img = Image.open(file).convert("L").resize((28, 28))
-        img_array = np.array(img).astype("float32") / 255.0
-        img_array = img_array.reshape(1, 28, 28, 1)
-
-        prediction = model.predict(img_array)
-        predicted_class = int(np.argmax(prediction))
-
-        return jsonify({
-            "model": model_key,
-            "prediction": predicted_class,
-            "probabilities": prediction.tolist()[0]
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# Tüm modelleri kıyasla
+@app.route("/compare_models")
+def compare_models():
+    with open(HISTORY_FILE) as f:
+        return jsonify(json.load(f))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)

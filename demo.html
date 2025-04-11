@@ -81,6 +81,7 @@
   <div>
     <button onclick="predict()">Tahmin Et</button>
     <button onclick="clearCanvas()">Temizle</button>
+    <button onclick="goToTuningLab()">🔧 Model Oluştur / Tune Et</button>
   </div>
   <div id="loading" style="display: none;">⏳ Model yükleniyor...</div>
   <div id="prediction">Tahmin: ?</div>
@@ -160,6 +161,10 @@
         container.appendChild(bar);
         bars.appendChild(container);
       });
+    }
+
+    function goToTuningLab() {
+      window.location.href = "tuning_lab.html";
     }
 
     clearCanvas();

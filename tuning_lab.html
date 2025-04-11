@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>MNIST Tuning Lab</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial; margin: 20px; background: #f4f4f4; }
+    label { font-weight: bold; }
+    input, select { margin: 5px; padding: 4px; }
+    button {
+      margin: 10px 5px;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+    .model-list {
+      margin-top: 20px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ccc;
+    }
+    #modelSelect { width: 200px; padding: 6px; }
+    #trainingProgress { display: none; width: 300px; height: 20px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>MNIST Tuning Lab</h1>
+
+  <button onclick="window.location.href='demo.html'">← Demo Sayfasına Dön</button>
+
+  <form id="tuningForm">
+    <label>Model Adı:</label><input type="text" id="model_name" required><br>
+    <label>Katman Sayısı:</label><select id="num_layers">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select><br>
+    <label>Katman 1 Nöron:</label><input type="number" id="units_0" value="128"><br>
+    <label>Katman 2 Nöron:</label><input type="number" id="units_1" value="64"><br>
+    <label>Katman 3 Nöron:</label><input type="number" id="units_2" value="32"><br>
+    <label>Aktivasyon:</label>
+    <select id="activation">
+      <option value="relu">ReLU</option>
+      <option value="tanh">Tanh</option>
+      <option value="sigmoid">Sigmoid</option>
+    </select><br>
+    <label>Dropout:</label><input type="number" id="dropout" step="0.1" value="0.3"><br>
+    <label>L2 Reg:</label><input type="number" id="l2_reg" step="0.0001" value="0.0001"><br>
+    <label>Learning Rate:</label><input type="number" id="lr" step="0.0001" value="0.001"><br>
+    <label>Epoch:</label><input type="number" id="epochs" value="10"><br>
+    <button type="submit" id="submitBtn">Modeli Eğit</button>
+  </form>
+
+  <progress id="trainingProgress" max="100" value="0"></progress>
+
+  <div class="model-list">
+    <h2>Kayıtlı Modeller</h2>
+    <select id="modelSelect"></select>
+    <button onclick="loadModelDetails()">Detay Göster</button>
+    <div id="modelDetails"></div>
+    <button onclick="compareModels()">Sonuçları Karşılaştır</button>
+  </div>
+
+  <canvas id="comparisonChart" width="600" height="300"></canvas>
+
+  <script>
+    const form = document.getElementById("tuningForm");
+    const modelSelect = document.getElementById("modelSelect");
+    const modelDetails = document.getElementById("modelDetails");
+    const progress = document.getElementById("trainingProgress");
+    const submitBtn = document.getElementById("submitBtn");
+
+    async function refreshModelList() {
+      const res = await fetch("/list_models");
+      const models = await res.json();
+      modelSelect.innerHTML = "";
+      models.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m.model_name;
+        opt.textContent = `${m.model_name} (${m.created.slice(0, 19)})`;
+        modelSelect.appendChild(opt);
+      });
+    }
+
+    async function loadModelDetails() {
+      const model = modelSelect.value;
+      if (!model) return;
+      const res = await fetch(`/evaluate_model/${model}`);
+      const data = await res.json();
+      modelDetails.innerHTML = `<p><strong>${data.model_name}</strong><br>Doğruluk: <b>${(data.val_accuracy * 100).toFixed(2)}%</b><br>Loss: ${data.loss.toFixed(4)}</p>`;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      progress.style.display = "block";
+      progress.value = 0;
+
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < 100) {
+          i++;
+          progress.value = i;
+        }
+      }, 80);
+
+      const data = {
+        model_name: form.model_name.value,
+        num_layers: +form.num_layers.value,
+        units_0: +form.units_0.value,
+        units_1: +form.units_1.value,
+        units_2: +form.units_2.value,
+        activation: form.activation.value,
+        dropout: +form.dropout.value,
+        l2_reg: +form.l2_reg.value,
+        lr: +form.lr.value,
+        epochs: +form.epochs.value
+      };
+
+      const res = await fetch("/create_model", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      clearInterval(interval);
+      progress.style.display = "none";
+      progress.value = 0;
+      submitBtn.disabled = false;
+
+      const result = await res.json();
+      alert(`${result.model_name} eğitildi. Doğruluk: ${result.val_accuracy}`);
+      refreshModelList();
+    });
+
+    async function compareModels() {
+      const res = await fetch("/compare_models");
+      const models = await res.json();
+
+      const labels = models.map(m => m.model_name);
+      const scores = models.map(m => m.val_accuracy);
+
+      new Chart(document.getElementById("comparisonChart"), {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Doğruluk',
+            backgroundColor: '#007bff',
+            data: scores
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true, max: 1.0 } }
+        }
+      });
+    }
+
+    refreshModelList();
+  </script>
+</body>
+</html>
